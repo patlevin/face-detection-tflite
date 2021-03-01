@@ -1,0 +1,7 @@
+Crop Factor database was extracted from
+https://github.com/lensfun/lensfun
+
+"model" and "cropfactor" where extracted from the XML files and stored as CSV.
+
+The lens database is licensed under the
+Creative Commons Attribution-Share Alike 3.0 license (CC BY-SA 3.0).
