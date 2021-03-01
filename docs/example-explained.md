@@ -17,37 +17,61 @@ grayscale and use [Pillow's colorize](https://pillow.readthedocs.io/en/stable/re
 
 ![Eye with original color, grayscaled and colorized next to each other](example2.jpg)
 
-The `colorize` function allows us to pass a mask image so we can easily
-leave the sclera (the white part of the eyeball) untouched.
+We can then paste the recolored iris back into the image.
+The `paste` function allows us to pass a mask image so we can easily leave
+the sclera (the white part of the eyeball) untouched.
 
-## Staying Within Boundaries
-
-Using the `IrisLandmark` model, it's simple enough to find the iris oval in
-the image:
+An initial attempt might look something like this:
 
 ```python
 ...
-# detect iris
-eye_detection_results = detect_iris(img, roi)
-# calculate bounding box
-bbox = bbox_from_landmarks(eye_detection_results.iris)
-# get image coordinates
-bbox = bbox.absolute(img.size)
-# extract iris image
-l, r, t, b = bbox.astuple
-iris_location = (int(l), int(t), int(r+1), int(b+1))
-iris_size = (int(bbox.width), int(bbox.height))
-iris = image.transform(iris_size, Image.EXTEND, data=iris_location)
-# we can simply use Pillow's ImageDraw module to create a filled ellipse
-# for masking the iris ("L" means grayscale image):
-mask = Image.new(mode='L', size=iris.size)
-draw = ImageDraw.Draw(mask)
-draw.ellipse((0, 0, mask.width, mask.height), fill=255)
+left_eye = detect_iris(image, left_eye_roi)
+# isolate the iris
+iris_location, iris_size = get_iris_position_and_size(left_eye, image)
+iris = image.transform(iris_size, Image.EXTENT, data=iris_location)
+# grayscale
+iris = iris.convert('L')
+# create mask
+mask = get_iris_mask(iris_size)
+# apply color
+iris_new = ImageOps.colorize(iris, 'black', 'white', mid=(120, 210, 45))
+# paste results into image
+image.paste(iris_new, iris_location, mask)
 ```
+
+Getting the iris size- and position is straight forward. We already get the
+landmarks that mark the iris position and -size with the iris detection
+results:
+
+```python
+def get_iris_position_and_size(iris_results, image):
+    bbox = bbox_from_landmarks(iris_results.iris).absolute(image.size)
+    l, t, r, b = bbox.as_tuple
+    # we add one pixel to the right and bottom because bounds are inclusive 
+    iris_location = (int(l), int(t), int(r+1), int(b+1))
+    iris_size = (int(bbox.width+1), int(bbox.height+1))
+    return iris_location, iris_size
+```
+
+Creating the mask is simple as well if we know the size of the mask image:
+
+```python
+def get_iris_mask(iris_size):
+    mask = Image.new(mode='L', size=iris_size)
+    draw = ImageDraw.Draw(mask)
+    draw.ellipse((0, 0, mask.width, mask.height), fill=255)
+    return mask
+```
+
+The result would be ok, but we clearly colorize regions covered by the eyelids:
+
+![Recolored eye without restricting to eye contours](example4.jpg)
+
+## Staying Within Boundaries
 
 Using the parameters obtained from the bounding box, we can create an image
 that represents a mask for colorizing. This would be great if we didn't have
-the eye's contours to take into account:
+the eye's contours to take into account. Here's what we've got so far:
 
 ![Iris bounding box, iris ellipse, eye contour landmarks, and iris mask](example3.jpg)
 
@@ -89,4 +113,4 @@ point in that case.
 
 That's just one way of doing it. The results won't be pixel perfect for
 various reasons. One improvement might be blending towards the edges of the
-mask or growing/shrinking the mask based on edge traditional detection.
+mask or growing/shrinking the mask based on traditional edge detection.
