@@ -1,0 +1,19 @@
+include *.py
+include *.in
+include *.md
+include *.toml
+include mypy.ini
+include LICENSE
+
+graft docs
+graft fdlite
+
+recursive-include fdlite *.tflite
+recursive-include fdlite *.csv
+recursive-include fdlite *.txt
+
+exclude .editorconfig
+global-exclude .git*
+global-exclude *.pyc
+global-exclude *.so
+global-exclude *.dll
