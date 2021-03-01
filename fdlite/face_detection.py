@@ -122,7 +122,7 @@ class FaceDetection(object):
         ssd_opts = {}
         if model_path is None:
             my_path = os.path.abspath(__file__)
-            model_path = os.path.join(os.path.dirname(my_path), '../data')
+            model_path = os.path.join(os.path.dirname(my_path), 'data')
         if model_type == FaceDetectionModel.FRONT_CAMERA:
             self.model_path = os.path.join(model_path, MODEL_NAME_FRONT)
             ssd_opts = SSD_OPTIONS_FRONT

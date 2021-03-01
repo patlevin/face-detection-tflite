@@ -101,7 +101,7 @@ class FaceLandmark(object):
     ) -> None:
         if model_path is None:
             my_path = os.path.abspath(__file__)
-            model_path = os.path.join(os.path.dirname(my_path), '../data')
+            model_path = os.path.join(os.path.dirname(my_path), 'data')
         self.model_path = os.path.join(model_path, MODEL_NAME)
         self.interpreter = tf.lite.Interpreter(model_path=self.model_path)
         self.input_index = self.interpreter.get_input_details()[0]['index']
