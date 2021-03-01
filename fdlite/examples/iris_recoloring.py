@@ -10,11 +10,12 @@ from fdlite.face_landmark import FaceLandmark, face_detection_to_roi
 from fdlite.iris_landmark import IrisLandmark, IrisResults
 from fdlite.iris_landmark import iris_roi_from_face_landmarks
 from fdlite.transform import bbox_from_landmarks
-from fdlite.types import Landmark
 """Iris recoloring example based on face- and iris detection models.
 """
 
-Point = Tuple[int, int]
+_Point = Tuple[int, int]
+_Size = Tuple[int, int]
+_Rect = Tuple[int, int, int, int]
 
 
 def recolor_iris(
@@ -36,57 +37,60 @@ def recolor_iris(
     Returns:
         (Image) The function returns the modified PIL image instance.
     """
-    iris_bbox = bbox_from_landmarks(iris_results.iris).absolute(image.size)
-    iris_size = (int(round(iris_bbox.width)), int(round(iris_bbox.height)))
-    # make sure the sizes match even after rounding (hence use iris_size)
-    iris_loc = (int(round(iris_bbox.xmin)), int(round(iris_bbox.ymin)),
-                int(round(iris_bbox.xmin)) + iris_size[0],
-                int(round(iris_bbox.ymin)) + iris_size[1])
+    iris_location, iris_size = _get_iris_location(iris_results, image.size)
     # nothing fancy - just grab the iris part as an Image and work with that
-    eye_image = image.transform(iris_size, method=Image.EXTENT, data=iris_loc)
+    eye_image = image.transform(iris_size, Image.EXTENT, data=iris_location)
     eye_image = eye_image.convert(mode='L')
     eye_image = ImageOps.colorize(eye_image, 'black', 'white', mid=iris_color)
     # build a mask for copying back into the original image
     # no fancy anti-aliasing or blending, though
-    mask = _get_iris_mask(iris_results, image.size)
-    image.paste(eye_image, iris_loc, mask)
+    mask = _get_iris_mask(iris_results, iris_location, iris_size, image.size)
+    image.paste(eye_image, iris_location, mask)
     return image
 
 
+def _get_iris_location(
+    results: IrisResults, image_size: _Size
+) -> Tuple[_Rect, _Size]:
+    """Return iris location and -size"""
+    bbox = bbox_from_landmarks(results.iris).absolute(image_size)
+    size = (int(bbox.width + 1), int(bbox.height + 1))
+    l, t, r, b = bbox.as_tuple
+    location = (int(l), int(t), int(r + 1), int(b + 1))
+    return location, size
+
+
 def _get_iris_mask(
-    results: IrisResults, image_size: Tuple[int, int]
+    results: IrisResults,
+    iris_location: _Rect,
+    iris_size: _Size,
+    image_size: _Size
 ) -> PILImage:
     """Return a mask for the visible portion of the iris inside eye landmarks.
     """
-    def roundi(x) -> int:
-        return int(round(x))
-
-    w, h = image_size
-    eyeball = [Landmark(pt.x * w, pt.y * h, pt.z * w)
-               for pt in results.eyeball_contour]
-    iris = [Landmark(pt.x * w, pt.y * h, pt.z * w)
-            for pt in results.iris]
-    bbox_eye = bbox_from_landmarks(eyeball)
-    bbox_iris = bbox_from_landmarks(iris)
+    left, top, _, bottom = iris_location
+    iris_width, iris_height = iris_size
+    img_width, img_height = image_size
     # sort lexicographically by x then y
-    eyeball_sorted = sorted([(roundi(pt.x), roundi(pt.y)) for pt in eyeball])
-    x_ofs = roundi(bbox_iris.xmin)
-    y_ofs = roundi(bbox_iris.ymin)
-    y_start = roundi(max(bbox_eye.ymin, bbox_iris.ymin))
-    y_end = roundi(min(bbox_eye.ymax-1, bbox_iris.ymax-1))
-    mask = np.zeros(
-        (roundi(bbox_iris.height), roundi(bbox_iris.width)), dtype=np.uint8)
+    eyeball_sorted = sorted([(int(pt.x * img_width), int(pt.y * img_height))
+                             for pt in results.eyeball_contour])
+    bbox = bbox_from_landmarks(results.eyeball_contour).absolute(image_size)
+    x_ofs = left
+    y_ofs = top
+    y_start = int(max(bbox.ymin, top))
+    y_end = int(min(bbox.ymax, bottom))
+    mask = np.zeros((iris_height, iris_width), dtype=np.uint8)
     # iris ellipse radii (horizontal and vertical radius)
-    a = roundi(bbox_iris.width / 2)
-    b = roundi(bbox_iris.height / 2)
+    a = iris_width // 2
+    b = iris_height // 2
     # iris ellipse foci (horizontal and vertical)
-    cx = roundi(bbox_iris.xmin + a)
-    cy = roundi(bbox_iris.ymin + b)
-    box_center_y = roundi(bbox_eye.ymin + bbox_eye.height / 2)
+    cx = left + a
+    cy = top + b
+    box_center_y = int(bbox.ymin + bbox.ymax) // 2
     b_sqr = b**2
     for y in range(y_start, y_end):
         # evaluate iris ellipse at y
-        x = roundi(a * np.math.sqrt(b_sqr - (y-cy)**2) / b)
+        x = int(a * np.math.sqrt(b_sqr - (y-cy)**2) / b)
         x0, x1 = cx - x, cx + x
         A, B = _find_contour_segment(eyeball_sorted, (x0, y))
         left_inside = _is_below_segment(A, B, (x0, y), box_center_y)
@@ -99,11 +103,11 @@ def _get_iris_mask(
         elif not right_inside:
             x1 = int(min((D[0] - C[0])/(D[1] - C[1]) * (y - C[1]) + C[0], x1))
         # mark ellipse row as visible
-        mask[(y - y_ofs), roundi(x0 - x_ofs):roundi(x1 - x_ofs)] = 255
+        mask[(y - y_ofs), int(x0 - x_ofs):int(x1 - x_ofs)] = 255
     return Image.fromarray(mask, mode='L')
 
 
-def _is_below_segment(A: Point, B: Point, C: Point, threshold: int) -> bool:
+def _is_below_segment(A: _Point, B: _Point, C: _Point, mid: int) -> bool:
     """Return whether a point is below the line AB"""
     dx = B[0] - A[0]
     dy = B[1] - A[1]
@@ -112,18 +116,17 @@ def _is_below_segment(A: Point, B: Point, C: Point, threshold: int) -> bool:
     m = dy / dx
     y = x * m + A[1]
     # flip the sign if the leftmost point is below the threshold
-    sign = -1 if A[1] > threshold else 1
+    sign = -1 if A[1] > mid else 1
     return sign * (C[1] - y) > 0
 
 
 def _find_contour_segment(
-    contour: Sequence[Tuple[int, int]],
-    point: Point
-) -> Tuple[Point, Point]:
+    contour: Sequence[_Point], point: _Point
+) -> Tuple[_Point, _Point]:
     """Find contour segment (points A and B) that contains the point.
     (contour must be lexicographically sorted!)
     """
-    def distance(a: Tuple[int, int], b: Tuple[int, int]) -> int:
+    def distance(a: _Point, b: _Point) -> int:
         return (a[0] - b[0])**2 + (a[1] - b[1])**2
 
     MAX_IDX = len(contour)-1
