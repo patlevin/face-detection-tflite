@@ -8,19 +8,19 @@ The package provides the following models:
 
 * Face Detection
 
-![Face detection example](docs/group_photo.jpg)
+![Face detection example](https://raw.githubusercontent.com/patlevin/face-detection-tflite/main/docs/group_photo.jpg)
 
 * Face Landmark Detection
 
-![Face landmark example](docs/portrait_fl.jpg)
+![Face landmark example](https://raw.githubusercontent.com/patlevin/face-detection-tflite/main/docs/portrait_fl.jpg)
 
 * Iris Landmark Detection
 
-![Iris landmark example](docs/eyes.jpg)
+![Iris landmark example](https://raw.githubusercontent.com/patlevin/face-detection-tflite/main/docs/eyes.jpg)
 
 * Iris recoloring example
 
-![Iris recoloring example](docs/recolored.jpg)
+![Iris recoloring example](https://raw.githubusercontent.com/patlevin/face-detection-tflite/main/docs/recolored.jpg)
 
 ## Motivation
 
