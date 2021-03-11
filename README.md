@@ -51,8 +51,15 @@ some models (e.g. iris detection) aren't available in the Python API.
 
 ## Installation
 
-The package can be installed by navigating to the folder containing `setup.py`
-and running
+The latest release version is available in [PyPI](https://pypi.org/project/face-detection-tflite/0.1.0/)
+and can be installed via:
+
+```sh
+pip install -U face-detection-tflite
+```
+
+The package can be also installed from source by navigating to the folder
+containing `setup.py` and running
 
 ```sh
 pip install .
