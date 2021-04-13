@@ -7,4 +7,4 @@ from .iris_landmark import eye_landmarks_to_render_data           # noqa:F401
 from .iris_landmark import iris_depth_in_mm_from_landmarks        # noqa:F401
 from .iris_landmark import iris_landmarks_to_render_data          # noqa:F401
 from .iris_landmark import iris_roi_from_face_landmarks           # noqa:F401
-__version__ = '0.1.0'
+__version__ = '0.2.0'
