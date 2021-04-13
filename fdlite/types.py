@@ -82,7 +82,7 @@ class BBox:
     @property
     def as_tuple(self) -> Tuple[float, float, float, float]:
         """Upper-left and bottom-right as a tuple"""
-        return round(self.xmin), self.ymin, self.xmax, self.ymax
+        return self.xmin, self.ymin, self.xmax, self.ymax
 
     @property
     def width(self) -> float:

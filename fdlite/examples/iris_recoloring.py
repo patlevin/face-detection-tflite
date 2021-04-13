@@ -54,9 +54,10 @@ def _get_iris_location(
 ) -> Tuple[_Rect, _Size]:
     """Return iris location and -size"""
     bbox = bbox_from_landmarks(results.iris).absolute(image_size)
-    size = (int(bbox.width + 1), int(bbox.height + 1))
-    l, t, r, b = bbox.as_tuple
-    location = (int(l), int(t), int(r + 1), int(b + 1))
+    width, height = int(bbox.width + 1), int(bbox.height + 1)
+    size = (width, height)
+    left, top = int(bbox.xmin), int(bbox.ymin)
+    location = (left, top, left + width, top + height)
     return location, size
 
 
