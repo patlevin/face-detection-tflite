@@ -90,10 +90,10 @@ RIGHT_EYE_TO_FACE_LANDMARK_INDEX = [
     # halo x3 lower contour
     446, 261, 448, 449, 450, 451, 452, 453, 464,
     # halo x3 upper contour excluding corners
-    265, 353, 276, 283, 282, 295,
+    342, 445, 444, 443, 442, 441, 413,
     # halo x4 upper contour (no upper due to mesh structure)
     # or eyebrow inner contour
-    35, 124, 46, 53, 52, 65,
+    265, 353, 276, 283, 282, 295,
     # halo x5 lower contour
     372, 340, 346, 347, 348, 349, 350, 357, 465,
     # halo x5 upper contour excluding corners or eyebrow outer contour
