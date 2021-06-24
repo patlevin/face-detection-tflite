@@ -32,12 +32,12 @@ with the pretrained ML models than the rather complex **MediaPipe** framework.
 Here's how face detection works and an image like shown above can be produced:
 
 ```python
-from fdlite import FaceDetection
+from fdlite import FaceDetection, FaceDetectionModel
 from fdlite.render import Colors, detections_to_render_data, render_to_image 
 from PIL import Image
 
 image = Image.open('group.jpg')
-detect_faces = FaceDetection()
+detect_faces = FaceDetection(model_type=FaceDetectionModel.BACK_CAMERA)
 faces = detect_faces(image)
 if len(faces) == 0:
     print('no faces detected :(')
@@ -48,6 +48,16 @@ else:
 
 While this example isn't that much simpler than the **MediaPipe** equivalent,
 some models (e.g. iris detection) aren't available in the Python API.
+
+Note that the package ships with two models:
+
+* `FaceDetectionModel.FRONT_CAMERA` - a smaller model optimised for
+  selfies and close-up portraits; this is the default model used
+* `FaceDetectionModel.BACK_CAMERA` - a larger model suitable for group
+ images and wider shots with smaller faces
+
+If you don't know whether the image is a close-up portrait or you get no
+detections with the default model, try using the `BACK_CAMERA`-model instead.
 
 ## Installation
 

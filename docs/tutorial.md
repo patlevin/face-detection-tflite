@@ -28,12 +28,12 @@ just like a function. The example below shows how to detect faces and
 display results using `Pillow`:
 
 ```python
-from fdlite import FaceDetection
+from fdlite import FaceDetection, FaceDetectionModel
 from fdlite.render import Colors, detections_to_render_data, render_to_image
 from PIL import Image
 
-# load the model
-detect_faces = FaceDetection()
+# load the model; select "back camera"-model for groups and smaller faces
+detect_faces = FaceDetection(model_type=FaceDetectionModel.BACK_CAMERA)
 # open an image
 img = Image.open('group.jpg')
 # detect faces
@@ -75,7 +75,8 @@ from PIL import Image
 detect_faces = FaceDetection()
 detect_face_landmarks = FaceLandmark()
 
-# open image
+# open image; by default, the "front camera"-model is used, which is smaller
+# and ideal for selfies, and close-up portraits
 img = Image.open('portrait.jpg')
 # detect face
 face_detections = detect_faces(img)
