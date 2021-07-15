@@ -112,6 +112,9 @@ def _is_below_segment(A: _Point, B: _Point, C: _Point, mid: int) -> bool:
     """Return whether a point is below the line AB"""
     dx = B[0] - A[0]
     dy = B[1] - A[1]
+    if not dx:
+        # vertical line: check if the point is on the line
+        return A[1] <= C[1] and B[1] >= C[1]
     # x -> [0, 1]
     x = (C[0] - A[0]) / dx
     m = dy / dx
