@@ -102,7 +102,7 @@ class BBox:
     @property
     def normalized(self) -> bool:
         """True if the box contains normalized coordinates"""
-        return self.xmin >= 0 and self.xmax <= 1 and self.ymin >= 0
+        return self.xmin >= -1 and self.xmax < 2 and self.ymin >= -1
 
     @property
     def area(self) -> float:
