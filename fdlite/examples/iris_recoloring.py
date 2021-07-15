@@ -128,7 +128,7 @@ def _find_contour_segment(
     (contour must be lexicographically sorted!)
     """
     def distance(a: _Point, b: _Point) -> int:
-        return (a[0] - b[0])**2 + (a[1] - b[1])**2
+        return (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2
 
     MAX_IDX = len(contour)-1
     # contour point left of point
@@ -154,7 +154,7 @@ def main(image_file: Union[str, PathLike]) -> None:
     # Step 1: detect the face and get a proper ROI for further processing
     face_detection = FaceDetection(FaceDetectionModel.BACK_CAMERA)
     detections = face_detection(img)
-    if len(detections) == 0:
+    if not len(detections):
         print('No face detected :(')
         exit(0)
     face_roi = face_detection_to_roi(detections[0], img.size)

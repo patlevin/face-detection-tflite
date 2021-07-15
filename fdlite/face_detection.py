@@ -88,7 +88,7 @@ class FaceDetectionModel(IntEnum):
     BACK_CAMERA = 1
 
 
-class FaceDetection(object):
+class FaceDetection:
     """BlazeFace face detection model as used by Google MediaPipe.
 
     This model can detect multiple faces and returns a list of detections.
@@ -107,7 +107,7 @@ class FaceDetection(object):
         detections = detect_faces('/home/user/pictures/group_photo.jpg')
         print(f'num. faces found: {len(detections)}')
         # convert normalised coordinates to pixels (assuming 3kx2k image):
-        if len(detections) > 0:
+        if len(detections):
             rect = detections[0].bbox.scale(3000, 2000)
             print(f'first face rect.: {rect}')
         else:

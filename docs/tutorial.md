@@ -38,7 +38,7 @@ detect_faces = FaceDetection(model_type=FaceDetectionModel.BACK_CAMERA)
 img = Image.open('group.jpg')
 # detect faces
 detections = detect_faces(img)
-if len(detections) > 0:
+if len(detections):
     # convert results to render data; show bounding boxes only
     render_data = detections_to_render_data(
         detections, bounds_color=Colors.GREEN, line_width=4)
@@ -80,7 +80,7 @@ detect_face_landmarks = FaceLandmark()
 img = Image.open('portrait.jpg')
 # detect face
 face_detections = detect_faces(img)
-if len(face_detections) > 0:
+if len(face_detections):
     # get ROI for the first face found
     face_roi = face_detection_to_roi(face_detections[0], img.size)
     # detect face landmarks
@@ -134,7 +134,7 @@ detect_iris = IrisLandmark()
 img = Image.open('portrait.jpg')
 # detect face
 face_detections = detect_faces(img)
-if len(face_detections) > 0:
+if len(face_detections):
     # get ROI for the first face found
     face_roi = face_detection_to_roi(face_detections[0], img.size)
     # detect face landmarks
@@ -195,7 +195,7 @@ detect_iris = IrisLandmark()
 img = Image.open('portrait.jpg')
 # detect face
 face_detections = detect_faces(img)
-if len(face_detections) > 0:
+if len(face_detections):
     # get ROI for the first face found
     face_roi = face_detection_to_roi(face_detections[0], img.size)
     # detect face landmarks
@@ -251,7 +251,7 @@ detect_iris = IrisLandmark()
 img = Image.open('portrait_exif.jpg')
 # detect face
 face_detections = detect_faces(img)
-if len(face_detections) > 0:
+if len(face_detections):
     # get ROI for the first face found
     face_roi = face_detection_to_roi(face_detections[0], img.size)
     # detect face landmarks

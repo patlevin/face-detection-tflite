@@ -86,7 +86,7 @@ def _weighted_non_maximum_suppression(
     candidates: List[Tuple[int, float]] = []
     outputs: List[Detection] = []
 
-    while len(remaining_indexed_scores) > 0:
+    while len(remaining_indexed_scores):
         detection = detections[remaining_indexed_scores[0][0]]
         # exit loop if remaining scores are below threshold
         if min_score is not None and detection.score < min_score:
@@ -104,7 +104,7 @@ def _weighted_non_maximum_suppression(
             else:
                 remaining.append((index, score))
         # weighted merging of similar (close) boxes
-        if len(candidates) > 0:
+        if len(candidates):
             weighted = np.zeros((2 + len(detection), 2), dtype=np.float32)
             total_score = 0.
             for index, score in candidates:

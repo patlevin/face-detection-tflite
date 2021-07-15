@@ -117,7 +117,7 @@ def face_detection_to_roi(
     )
 
 
-class FaceLandmark(object):
+class FaceLandmark:
     """Face Landmark detection model as used by Google MediaPipe.
 
     This model detects facial landmarks from a face image.

@@ -101,7 +101,7 @@ RIGHT_EYE_TO_FACE_LANDMARK_INDEX = [
 ]
 
 # 35mm camera sensor diagonal (36mm * 24mm)
-SENSOR_DIAGONAL_35MM = np.math.sqrt(36**2 + 24**2)
+SENSOR_DIAGONAL_35MM = np.math.sqrt(36 ** 2 + 24 ** 2)
 # average human iris size
 IRIS_SIZE_IN_MM = 11.8
 
@@ -389,7 +389,7 @@ def iris_depth_in_mm_from_landmarks(
     return left_depth_mm, right_depth_mm
 
 
-class IrisLandmark(object):
+class IrisLandmark:
     """Model for iris landmark detection from the image of an eye.
 
     The model expects the image of an eye as input, complete with brows and
