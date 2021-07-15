@@ -39,7 +39,7 @@ from PIL import Image
 image = Image.open('group.jpg')
 detect_faces = FaceDetection(model_type=FaceDetectionModel.BACK_CAMERA)
 faces = detect_faces(image)
-if len(faces) == 0:
+if not len(faces):
     print('no faces detected :(')
 else:
     render_data = detections_to_render_data(faces, bounds_color=Colors.GREEN)
