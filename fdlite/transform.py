@@ -6,6 +6,7 @@ from typing import List, Optional, Sequence, Tuple, Union
 import numpy as np
 from PIL import Image
 from PIL.Image import Image as PILImage
+from fdlite import ArgumentError, CoordinateRangeError, InvalidEnumError
 from fdlite.types import BBox, Detection, ImageTensor, Landmark, Rect
 """Functions for data transformations that are used by the detection models"""
 
@@ -181,9 +182,13 @@ def bbox_to_roi(
 
     Returns:
         (Rect) Normalized and possibly rotated ROI rectangle.
+
+    Raises:
+        CoordinateRangeError: bbox is not in normalised coordinates (0 to 1)
+        InvalidEnumError: `size_mode` contains an unsupported value
     """
     if not bbox.normalized:
-        raise ValueError('bbox must be normalized')
+        raise CoordinateRangeError('bbox must be normalized')
     PI = np.math.pi
     TWO_PI = 2 * PI
     # select ROI dimensions
@@ -215,9 +220,12 @@ def bbox_from_landmarks(landmarks: Sequence[Landmark]) -> BBox:
 
     Returns:
         (BBox) Bounding box that contains all points defined by the landmarks.
+
+    Raises:
+        ArgumentError: `landmarks` contains less than two (2) items
     """
     if len(landmarks) < 2:
-        raise ValueError('landmarks must contain at least 2 items')
+        raise ArgumentError('landmarks must contain at least 2 items')
     xmin, ymin = 999999., 999999.
     xmax, ymax = -999999., -999999.
     for landmark in landmarks:
@@ -343,5 +351,5 @@ def _select_roi_size(
         short_side = min(width, height)
         width, height = short_side / image_width, short_side / image_height
     elif size_mode != SizeMode.DEFAULT:
-        raise ValueError(f'unsupported size_mode: {size_mode}')
+        raise InvalidEnumError(f'unsupported size_mode: {size_mode}')
     return width, height

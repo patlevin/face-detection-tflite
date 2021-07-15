@@ -22,6 +22,7 @@ import tensorflow as tf
 from enum import IntEnum
 from PIL.Image import Image
 from typing import List, Optional, Union
+from fdlite import InvalidEnumError
 from fdlite.nms import non_maximum_suppression
 from fdlite.transform import detection_letterbox_removal, image_to_tensor
 from fdlite.transform import sigmoid
@@ -113,6 +114,9 @@ class FaceDetection:
         else:
             print('no faces found')
     ```
+
+    Raises:
+        InvalidEnumError: `model_type` contains an unsupported value
     """
     def __init__(
         self,
@@ -130,7 +134,7 @@ class FaceDetection:
             self.model_path = os.path.join(model_path, MODEL_NAME_BACK)
             ssd_opts = SSD_OPTIONS_BACK
         else:
-            raise ValueError(f'unsupported model_type "{model_type}"')
+            raise InvalidEnumError(f'unsupported model_type "{model_type}"')
         self.interpreter = tf.lite.Interpreter(model_path=self.model_path)
         self.interpreter.allocate_tensors()
         self.input_index = self.interpreter.get_input_details()[0]['index']

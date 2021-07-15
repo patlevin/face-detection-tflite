@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 # Copyright © 2021 Patrick Levin
 # SPDX-Identifier: MIT
-from fdlite.render import Annotation
 import os
 import numpy as np
 import tensorflow as tf
 from PIL.Image import Image
 from typing import List, Optional, Sequence, Tuple, Union
+from fdlite import ModelDataError
+from fdlite.render import Annotation
 from fdlite.render import Color, landmarks_to_render_data
 from fdlite.transform import SizeMode, bbox_to_roi, image_to_tensor, sigmoid
 from fdlite.transform import project_landmarks
@@ -131,6 +132,9 @@ class FaceLandmark:
 
     The preferred usage is to pass an ROI returned by a call to the
     `FaceDetection` model along with the image.
+
+    Raises:
+        ModelDataError: `model_path` points to an incompatible model
     """
     def __init__(
         self,
@@ -148,8 +152,8 @@ class FaceLandmark:
         data_shape = self.interpreter.get_output_details()[0]['shape']
         num_exected_elements = NUM_DIMS * NUM_LANDMARKS
         if data_shape[-1] < num_exected_elements:
-            raise ValueError(f'incompatible model: {data_shape} < '
-                             f'{num_exected_elements}')
+            raise ModelDataError(f'incompatible model: {data_shape} < '
+                                 f'{num_exected_elements}')
         self.interpreter.allocate_tensors()
 
     def __call__(

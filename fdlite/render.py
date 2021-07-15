@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import List, Optional, Sequence, Tuple, Union
 from PIL import ImageDraw
 from PIL.Image import Image as PILImage
+from fdlite import CoordinateRangeError
 from fdlite.types import Detection, Landmark
 """Types and functions related to rendering detection results"""
 
@@ -130,14 +131,14 @@ class Annotation:
             factor (tuple): Scaling factor as a tuple of `(width, height)`.
 
         Raises:
-            ValueError: the annotation doesn't have normalized position data.
+            CoordinateRangeError: position data is not normalized
 
         Returns:
             (Annotation) Annotation with all elements scaled to the given
             size.
         """
         if not self.normalized_positions:
-            raise ValueError('cannot set scaling on non-normalized data')
+            raise CoordinateRangeError('position data must be normalized')
         scaled_data = [item.scaled(factor) for item in self.data]
         return Annotation(scaled_data, normalized_positions=False,
                           thickness=self.thickness, color=self.color)
@@ -291,7 +292,7 @@ def render_to_image(
             scaled = annotation.scaled(image.size)
         else:
             scaled = annotation
-        if len(scaled.data) == 0:
+        if not len(scaled.data):
             continue
         thickness = int(scaled.thickness)
         color = scaled.color

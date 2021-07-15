@@ -8,7 +8,7 @@ import os
 import tensorflow as tf
 from PIL.Image import Image
 from typing import List, Optional, Sequence, Tuple, Union
-from fdlite import exif
+from fdlite import ArgumentError, MissingExifDataError, ModelDataError, exif
 from fdlite.render import Annotation, Color, Point, RectOrOval
 from fdlite.render import landmarks_to_render_data
 from fdlite.transform import bbox_from_landmarks, bbox_to_roi, image_to_tensor
@@ -261,6 +261,10 @@ def iris_landmarks_to_render_data(
             Use this to add multiple landmark detections into a single render
             annotation list.
 
+    Raises:
+        ArgumentError: `image_size` is too small or not provided and
+            `oval_color` is not `None`
+
     Returns:
         (list) Render data bundle containing points for landmarks and
         lines for landmark connections. All positions are normalised with
@@ -271,7 +275,7 @@ def iris_landmarks_to_render_data(
         iris_radius = _get_iris_diameter(iris_landmarks, image_size) / 2
         width, height = image_size
         if width < 2 or height < 2:
-            raise ValueError('invalid image_size')
+            raise ArgumentError('oval_color requires a valid image_size arg')
         radius_h = iris_radius / width
         radius_v = iris_radius / height
         iris_center = iris_landmarks[IrisIndex.CENTER]
@@ -312,9 +316,13 @@ def update_face_landmarks_with_iris_results(
     Returns:
         (list) List of face landmarks with refined eye contours and iris
         landmarks
+
+    Raises:
+        ModelDataError: the number of results in `face_landmarks` doesn't match
+            the supported model output
     """
     if len(face_landmarks) != NUM_FACE_LANDMARKS:
-        raise ValueError('unexpected number of items in face_landmarks')
+        raise ModelDataError('unexpected number of items in face_landmarks')
     # copy landmarks
     refined_landmarks = [Landmark(pt.x, pt.y, pt.z) for pt in face_landmarks]
     # merge left eye contours
@@ -352,9 +360,9 @@ def iris_depth_in_mm_from_landmarks(
             for the right eye.
 
     Raises:
-        ValueError: `image_or_sensor_data` is a PIL image without the required
-            EXIF meta data or the provided tuple is malformed (e.g. mismatch
-            in expected number of elements).
+        ArgumentError: `image_or_focal_length` does not have four (4) elements
+        MissingExifDataError: `image_or_sensor_data` is a PIL image without the
+        required EXIF meta data.
 
     Returns:
         (tuple) Tuple of `(left_eye_distance_in_mm, right_eye_distance_in_mm)`
@@ -362,12 +370,12 @@ def iris_depth_in_mm_from_landmarks(
     if isinstance(image_or_focal_length, Image):
         from_exif = exif.get_focal_length(image_or_focal_length)
         if from_exif is None:
-            raise ValueError('no focal length in EXIF data or unknown camera')
+            raise MissingExifDataError('missing EXIF data or unknown camera')
         focal_length = from_exif
     else:
         focal_length = image_or_focal_length
     if len(focal_length) != 4:
-        raise ValueError('image_or_focal_length tuple element count mismatch')
+        raise ArgumentError('focal length must contain 4 elements')
     # calculate focal length in pixels
     focal_len_35mm, focal_len_mm, width_px, height_px = focal_length
     sensor_diagonal_mm = SENSOR_DIAGONAL_35MM / focal_len_35mm * focal_len_mm
@@ -428,6 +436,9 @@ class IrisLandmark:
                 img, iris_roi[1], is_right_eye=True)
             ...
     ```
+
+    Raises:
+        ModelDataError: `model_path` refers to an incompatible detection model
     """
     def __init__(self, model_path: Optional[str] = None) -> None:
         if model_path is None:
@@ -442,12 +453,12 @@ class IrisLandmark:
 
         eye_shape = self.interpreter.get_output_details()[0]['shape']
         if eye_shape[-1] != NUM_DIMS * NUM_EYE_LANDMARKS:
-            raise ValueError('unexpected number of eye landmarks: '
-                             f'{eye_shape[-1]}')
+            raise ModelDataError('unexpected number of eye landmarks: '
+                                 f'{eye_shape[-1]}')
         iris_shape = self.interpreter.get_output_details()[1]['shape']
         if iris_shape[-1] != NUM_DIMS * NUM_IRIS_LANDMARKS:
-            raise ValueError('unexpected number of iris landmarks: '
-                             f'{eye_shape[-1]}')
+            raise ModelDataError('unexpected number of iris landmarks: '
+                                 f'{eye_shape[-1]}')
         self.interpreter.allocate_tensors()
 
     def __call__(
