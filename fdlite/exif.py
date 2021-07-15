@@ -66,13 +66,11 @@ def get_focal_length(image: Image) -> Optional[Tuple[int, int, int, int]]:
         focal_length_35mm = exif[ExifTag.FOCAL_LENGTH_35MM]
     else:
         model = exif[ExifTag.MODEL] if ExifTag.MODEL in exif else None
-        print(f'looking up {model}')
         if model is not None and len(_MODEL_DATABASE) == 0:
             _load_database()
         if model not in _MODEL_DATABASE:
             return None
         crop_factor = _MODEL_DATABASE[model]
-        print(f'found, crop factor is: {crop_factor}')
         focal_length_35mm = round(focal_length_in_mm * crop_factor)
     return focal_length_35mm, focal_length_in_mm, width_px, height_px
 
