@@ -181,7 +181,7 @@ simple iris recoloring:
 ```python
 from fdlite import FaceDetection, FaceLandmark, face_detection_to_roi
 from fdlite import IrisLandmark, iris_roi_from_face_landmarks
-from fdlite.examples import recolor_iris
+from fdlite.examples.iris_recoloring import recolor_iris
 from PIL import Image
 
 EXCITING_NEW_EYE_COLOR = (161, 52, 216)
