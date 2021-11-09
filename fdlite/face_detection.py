@@ -30,6 +30,10 @@ from fdlite.types import Detection, Rect
 
 MODEL_NAME_BACK = 'face_detection_back.tflite'
 MODEL_NAME_FRONT = 'face_detection_front.tflite'
+MODEL_NAME_SHORT = 'face_detection_short_range.tflite'
+MODEL_NAME_FULL = 'face_detection_full_range.tflite'
+MODEL_NAME_FULL_SPARSE = 'face_detection_full_range_sparse.tflite'
+
 # score limit is 100 in mediapipe and leads to overflows with IEEE 754 floats
 # this lower limit is safe for use with the sigmoid functions and float32
 RAW_SCORE_LIMIT = 80
@@ -47,6 +51,7 @@ SSD_OPTIONS_FRONT = {
     'anchor_offset_x': 0.5,
     'anchor_offset_y': 0.5,
     'strides': [8, 16, 16, 16],
+    'interpolated_scale_aspect_ratio': 1.0
 }
 
 # (reference: modules/face_detection/face_detection_back_desktop_live.pbtxt)
@@ -57,6 +62,29 @@ SSD_OPTIONS_BACK = {
     'anchor_offset_x': 0.5,
     'anchor_offset_y': 0.5,
     'strides': [16, 32, 32, 32],
+    'interpolated_scale_aspect_ratio': 1.0
+}
+
+# (reference: modules/face_detection/face_detection_short_range_common.pbtxt)
+SSD_OPTIONS_SHORT = {
+    'num_layers': 4,
+    'input_size_height': 128,
+    'input_size_width': 128,
+    'anchor_offset_x': 0.5,
+    'anchor_offset_y': 0.5,
+    'strides': [8,16,16,16],
+    'interpolated_scale_aspect_ratio': 1.0
+}
+
+# (reference: modules/face_detection/face_detection_full_range_common.pbtxt)
+SSD_OPTIONS_FULL = {
+    'num_layers': 1,
+    'input_size_height': 192,
+    'input_size_width': 192,
+    'anchor_offset_x': 0.5,
+    'anchor_offset_y': 0.5,
+    'strides': [4],
+    'interpolated_scale_aspect_ratio': 0.0
 }
 
 
@@ -87,6 +115,9 @@ class FaceDetectionModel(IntEnum):
     """
     FRONT_CAMERA = 0
     BACK_CAMERA = 1
+    SHORT = 2
+    FULL = 3
+    FULL_SPARSE = 4
 
 
 class FaceDetection:
@@ -133,6 +164,15 @@ class FaceDetection:
         elif model_type == FaceDetectionModel.BACK_CAMERA:
             self.model_path = os.path.join(model_path, MODEL_NAME_BACK)
             ssd_opts = SSD_OPTIONS_BACK
+        elif model_type == FaceDetectionModel.SHORT:
+            self.model_path = os.path.join(model_path, MODEL_NAME_SHORT)
+            ssd_opts = SSD_OPTIONS_SHORT
+        elif model_type == FaceDetectionModel.FULL:
+            self.model_path = os.path.join(model_path, MODEL_NAME_FULL)
+            ssd_opts = SSD_OPTIONS_FULL
+        elif model_type == FaceDetectionModel.FULL_SPARSE:
+            self.model_path = os.path.join(model_path, MODEL_NAME_FULL_SPARSE)
+            ssd_opts = SSD_OPTIONS_FULL
         else:
             raise InvalidEnumError(f'unsupported model_type "{model_type}"')
         self.interpreter = tf.lite.Interpreter(model_path=self.model_path)
@@ -248,6 +288,7 @@ def _ssd_generate_anchors(opts: dict) -> np.ndarray:
     input_width = opts['input_size_width']
     anchor_offset_x = opts['anchor_offset_x']
     anchor_offset_y = opts['anchor_offset_y']
+    interpolated_scale_aspect_ratio = opts['interpolated_scale_aspect_ratio']
     anchors = []
     while layer_id < num_layers:
         last_same_stride_layer = layer_id
@@ -255,7 +296,7 @@ def _ssd_generate_anchors(opts: dict) -> np.ndarray:
         while (last_same_stride_layer < num_layers and
                strides[last_same_stride_layer] == strides[layer_id]):
             last_same_stride_layer += 1
-            repeats += 2    # aspect_ratios are added twice per iteration
+            repeats += 2 if interpolated_scale_aspect_ratio == 1.0 else 1    # aspect_ratios are added twice per iteration
         stride = strides[layer_id]
         feature_map_height = input_height // stride
         feature_map_width = input_width // stride
