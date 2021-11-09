@@ -49,12 +49,25 @@ else:
 While this example isn't that much simpler than the **MediaPipe** equivalent,
 some models (e.g. iris detection) aren't available in the Python API.
 
-Note that the package ships with two models:
+Note that the package ships with five models:
 
 * `FaceDetectionModel.FRONT_CAMERA` - a smaller model optimised for
   selfies and close-up portraits; this is the default model used
 * `FaceDetectionModel.BACK_CAMERA` - a larger model suitable for group
  images and wider shots with smaller faces
+* `FaceDetectionModel.SHORT` - a model best suited for short range images,
+  i.e. faces are within 2 metres from the camera
+* `FaceDetectionModel.FULL` - a model best suited for mid range images,
+  i.e. faces are within 5 metres from the camera
+* `FaceDetectionModel.FULL_SPARSE` - a model best suited for mid range images,
+  i.e. faces are within 5 metres from the camera
+
+The `FaceDetectionModel.FULL` and `FaceDetectionModel.FULL_SPARSE` models are
+equivalent in terms of detection quality. They differ in that the full model
+is a dense model whereas the sparse model runs up to 30% faster on CPUs. On a
+GPU, both models exhibit similar runtime performance. In addition, the dense
+full model has slightly better [Recall](https://en.wikipedia.org/wiki/Precision_and_recall),
+whereas the sparse model features a higher [Precision](https://en.wikipedia.org/wiki/Precision_and_recall).
 
 If you don't know whether the image is a close-up portrait or you get no
 detections with the default model, try using the `BACK_CAMERA`-model instead.

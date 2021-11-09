@@ -72,7 +72,7 @@ SSD_OPTIONS_SHORT = {
     'input_size_width': 128,
     'anchor_offset_x': 0.5,
     'anchor_offset_y': 0.5,
-    'strides': [8,16,16,16],
+    'strides': [8, 16, 16, 16],
     'interpolated_scale_aspect_ratio': 1.0
 }
 
@@ -112,6 +112,16 @@ class FaceDetectionModel(IntEnum):
     FRONT_CAMERA - 128x128 image, assumed to be mirrored
 
     BACK_CAMERA - 256x256 image, not mirrored
+
+    SHORT - 128x128 image, assumed to be mirrored; best for short range images
+            (i.e. faces within 2 metres from the camera)
+
+    FULL - 192x192 image, assumed to be mirrored; dense; best for mid-ranges
+           (i.e. faces within 5 metres from the camera)
+
+    FULL_SPARSE - 192x192 image, assumed to be mirrored; sparse; best for
+            mid-ranges (i.e. faces within 5 metres from the camera)
+            this model is up ~30% faster than `FULL` when run on the CPU
     """
     FRONT_CAMERA = 0
     BACK_CAMERA = 1
@@ -296,7 +306,8 @@ def _ssd_generate_anchors(opts: dict) -> np.ndarray:
         while (last_same_stride_layer < num_layers and
                strides[last_same_stride_layer] == strides[layer_id]):
             last_same_stride_layer += 1
-            repeats += 2 if interpolated_scale_aspect_ratio == 1.0 else 1    # aspect_ratios are added twice per iteration
+            # aspect_ratios are added twice per iteration
+            repeats += 2 if interpolated_scale_aspect_ratio == 1.0 else 1
         stride = strides[layer_id]
         feature_map_height = input_height // stride
         feature_map_width = input_width // stride
