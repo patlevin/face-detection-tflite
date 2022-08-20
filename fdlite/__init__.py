@@ -13,4 +13,4 @@ from .iris_landmark import iris_landmarks_to_render_data          # noqa:F401
 from .iris_landmark import iris_roi_from_face_landmarks           # noqa:F401
 
 
-__version__ = '0.5.0'
+__version__ = '0.5.1'
