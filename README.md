@@ -74,7 +74,7 @@ detections with the default model, try using the `BACK_CAMERA`-model instead.
 
 ## Installation
 
-The latest release version is available in [PyPI](https://pypi.org/project/face-detection-tflite/0.1.0/)
+The latest release version is available in [PyPI](https://pypi.org/project/face-detection-tflite/0.5.1/)
 and can be installed via:
 
 ```sh
