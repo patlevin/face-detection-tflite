@@ -28,7 +28,7 @@ An initial attempt might look something like this:
 left_eye = detect_iris(image, left_eye_roi)
 # isolate the iris
 iris_location, iris_size = get_iris_position_and_size(left_eye, image)
-iris = image.transform(iris_size, Image.EXTENT, data=iris_location)
+iris = image.transform(iris_size, Transform.EXTENT, data=iris_location)
 # grayscale
 iris = iris.convert('L')
 # create mask

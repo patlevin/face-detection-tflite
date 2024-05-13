@@ -5,7 +5,7 @@ from enum import IntEnum
 from typing import List, Optional, Sequence, Tuple, Union
 import numpy as np
 from PIL import Image
-from PIL.Image import Image as PILImage
+from PIL.Image import Image as PILImage, Resampling, Transform, Transpose
 from fdlite import ArgumentError, CoordinateRangeError, InvalidEnumError
 from fdlite.types import BBox, Detection, ImageTensor, Landmark, Rect
 """Functions for data transformations that are used by the detection models"""
@@ -62,8 +62,8 @@ def image_to_tensor(
     src_points = roi.points()
     dst_points = [(0., 0.), (width, 0.), (width, height), (0., height)]
     coeffs = _perspective_transform_coeff(src_points, dst_points)
-    roi_image = img.transform(size=(width, height), method=Image.PERSPECTIVE,
-                              data=coeffs, resample=Image.LINEAR)
+    roi_image = img.transform(size=(width, height), method=Transform.PERSPECTIVE,
+                              data=coeffs, resample=Resampling.BILINEAR)
     # free some memory - we don't need the temporary image anymore
     if img != image:
         img.close()
@@ -82,11 +82,11 @@ def image_to_tensor(
         if new_width != int(roi.width) or new_height != int(roi.height):
             pad_h, pad_v = int(pad_x * new_width), int(pad_y * new_height)
             roi_image = roi_image.transform(
-                size=(new_width, new_height), method=Image.EXTENT,
+                size=(new_width, new_height), method=Transform.EXTENT,
                 data=(-pad_h, -pad_v, new_width - pad_h, new_height - pad_v))
-        roi_image = roi_image.resize(output_size, resample=Image.BILINEAR)
+        roi_image = roi_image.resize(output_size, resample=Resampling.BILINEAR)
     if flip_horizontal:
-        roi_image = roi_image.transpose(method=Image.FLIP_LEFT_RIGHT)
+        roi_image = roi_image.transpose(method=Transpose.FLIP_LEFT_RIGHT)
     # finally, apply value range transform
     min_val, max_val = output_range
     tensor_data = np.asarray(roi_image, dtype=np.float32)
